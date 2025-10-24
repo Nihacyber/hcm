@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             request.auth.token.get('admin', false) == true;
+    }
+
+    function isValidSchoolData() {
+      return request.resource.data.keys().hasAll(['name', 'address', 'city', 'state', 'zip']) &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() > 0 &&
+             request.resource.data.address is string &&
+             request.resource.data.city is string &&
+             request.resource.data.state is string &&
+             request.resource.data.zip is string;
+    }
+
+    function isValidTeacherData() {
+      return request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'schoolId']) &&
+             request.resource.data.firstName is string &&
+             request.resource.data.lastName is string &&
+             request.resource.data.email is string &&
+             request.resource.data.schoolId is string;
+    }
+
+    // Schools Collection
+    match /schools/{schoolId} {
+      // Allow read access to authenticated users
+      allow read: if isAuthenticated();
+
+      // Allow create if authenticated and data is valid
+      allow create: if isAuthenticated() && isValidSchoolData();
+
+      // Allow update if authenticated, data is valid, and user is admin
+      allow update: if isAuthenticated() && isValidSchoolData() && isAdmin();
+
+      // Allow delete if authenticated and user is admin
+      allow delete: if isAuthenticated() && isAdmin();
+
+      // Teachers subcollection
+      match /teachers/{teacherId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && isValidTeacherData();
+      }
+
+      // Mentors subcollection
+      match /mentors/{mentorId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() &&
+          request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'specialization']);
+      }
+
+      // Management subcollection
+      match /management/{managementId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() &&
+          request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'role', 'department']);
+      }
+    }
+
+    // Teachers Collection (top-level)
+    match /teachers/{teacherId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidTeacherData();
+      allow update: if isAuthenticated() && isValidTeacherData();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Training Programs Collection
+    match /trainingPrograms/{trainingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['name', 'description', 'level', 'category', 'startDate', 'endDate']);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Tasks Collection
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['title', 'description', 'assigneeId', 'priority', 'deadline']);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // User Profiles Collection (for future use)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Audits Collection
+    match /audits/{auditId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isAdmin();
+      allow update: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Training Attendance Collection
+    match /trainingAttendance/{attendanceId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['teacherId', 'trainingProgramId', 'date', 'status', 'markedBy']);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Teacher Training Collection
+    match /teacherTraining/{trainingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['teacherId', 'trainingProgramId', 'status']);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Mentors Collection (top-level)
+    match /mentors/{mentorId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'schoolId', 'specialization']);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Management Collection (top-level)
+    match /management/{managementId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'schoolId', 'role', 'department']);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Default deny rule for any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
