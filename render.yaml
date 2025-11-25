@@ -25,7 +25,7 @@ services:
   - type: web
     name: hauna-preschool-frontend
     runtime: static
-    region: oregon
+
     plan: free
     buildCommand: npm install && npm run build:render
     staticPublishPath: ./dist
