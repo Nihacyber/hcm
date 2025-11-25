@@ -26,7 +26,7 @@ services:
     name: hauna-preschool-frontend
     runtime: static
 
-    plan: free
+
     buildCommand: npm install && npm run build:render
     staticPublishPath: ./dist
     envVars:
