@@ -1,57 +1,38 @@
-headersOrigin = "config"
+functionsDirectory = "C:\\Users\\Hauna\\Downloads\\project-bolt-sb1-gqfzf2es (6)\\project\\netlify\\functions"
+functionsDirectoryOrigin = "config"
 redirectsOrigin = "config"
 plugins = []
-
-[functions]
-
-[functions."*"]
+headers = []
 
 [build]
-publish = "c:\\Users\\Hauna\\Downloads\\hauna-central-management-system\\dist"
+publish = "C:\\Users\\Hauna\\Downloads\\project-bolt-sb1-gqfzf2es (6)\\project\\dist"
 publishOrigin = "config"
 commandOrigin = "config"
 command = "npm run build"
-base = "c:\\Users\\Hauna\\Downloads\\hauna-central-management-system"
+functions = "C:\\Users\\Hauna\\Downloads\\project-bolt-sb1-gqfzf2es (6)\\project\\netlify\\functions"
 
 [build.environment]
-NODE_VERSION = "18"
 
 [build.processing]
-skip_processing = false
 
 [build.processing.css]
-bundle = true
-minify = true
 
 [build.processing.html]
-pretty_urls = true
 
 [build.processing.images]
 
 [build.processing.js]
-bundle = true
-minify = true
 
 [build.services]
 
-[[headers]]
-for = "/*"
+[functions]
 
-[headers.values]
-X-Frame-Options = "DENY"
-X-XSS-Protection = "1; mode=block"
-X-Content-Type-Options = "nosniff"
-Referrer-Policy = "strict-origin-when-cross-origin"
-
-[[headers]]
-for = "/assets/*"
-
-[headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
+[functions."*"]
+node_bundler = "zisi"
 
 [[redirects]]
-from = "/*"
-to = "/index.html"
+from = "/api/*"
+to = "/.netlify/functions/api"
 status = 200.0
 force = false
 
